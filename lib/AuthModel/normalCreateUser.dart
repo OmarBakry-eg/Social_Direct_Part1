@@ -3,11 +3,11 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:socialdirect_app/models/normalUser.dart';
-import 'package:socialdirect_app/testing_auth.dart';
+import 'package:socialdirect_app/pages/home.dart';
 import 'package:uuid/uuid.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as Im;
+import 'package:socialdirect_app/models/user.dart';
 
 class CreateNormalUser extends StatefulWidget {
   final String email;
@@ -27,7 +27,7 @@ class _CreateNormalUserState extends State<CreateNormalUser> {
   TextEditingController bio = TextEditingController();
   File file;
   bool isUploading = false;
-  NormalUser normalCurrentUser;
+  User normalCurrentUser;
   clearImage() {
     setState(() {
       file = null;
@@ -118,36 +118,39 @@ class _CreateNormalUserState extends State<CreateNormalUser> {
       doc = await usersRef.document(id).get();
     }
     setState(() {
-      normalCurrentUser = NormalUser.fromDocument(doc);
+      normalCurrentUser = User.fromDocument(doc);
     });
   }
 
   handelSubmit() async {
-    setState(() {
-      isUploading = true;
-    });
-    await compressedImage();
-    String mediaUrl = await uploadImage(file);
-    await createUserInFireStore(
-        photoUrl: mediaUrl,
-        bio: bio.text,
-        username: username.text,
-        displayName: displayName.text);
-    bio.clear();
-    username.clear();
-    displayName.clear();
-    setState(() {
-      file = null;
-      isUploading = false;
-      id = Uuid().v4();
-    });
-    Navigator.push(
+    if (_fromKey.currentState.validate()) {
+      setState(() {
+        isUploading = true;
+      });
+      await compressedImage();
+      String mediaUrl = await uploadImage(file);
+      await createUserInFireStore(
+          photoUrl: mediaUrl,
+          bio: bio.text,
+          username: username.text,
+          displayName: displayName.text);
+      bio.clear();
+      username.clear();
+      displayName.clear();
+      setState(() {
+        file = null;
+        isUploading = false;
+        id = Uuid().v4();
+      });
+      Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => TestingAuth(
-            username: normalCurrentUser.username,
+          builder: (context) => HomePage(
+            currentUser: normalCurrentUser,
           ),
-        ));
+        ),
+      );
+    }
   }
 
   @override
@@ -238,7 +241,7 @@ class _CreateNormalUserState extends State<CreateNormalUser> {
                 margin: EdgeInsets.symmetric(horizontal: 50),
                 child: RaisedButton(
                   color: Colors.blueAccent,
-                  onPressed: isUploading
+                  onPressed: file == null
                       ? null
                       : () async {
                           await handelSubmit();

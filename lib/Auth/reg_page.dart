@@ -5,10 +5,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'login_page.dart';
-import 'package:socialdirect_app/models/googleUser.dart';
-import 'package:socialdirect_app/models/normalUser.dart';
+import 'package:socialdirect_app/models/user.dart';
 import 'package:socialdirect_app/AuthModel/normalCreateUser.dart';
-import 'package:socialdirect_app/testing_auth.dart';
+import 'package:socialdirect_app/pages/home.dart';
 import 'package:socialdirect_app/Methods/method_auth.dart';
 import 'package:socialdirect_app/AuthModel/googleCreateUser.dart';
 
@@ -31,8 +30,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool showSpinner = false;
   bool noError = false;
   String errorMessage;
-  GoogleUser googleCurrentUser;
-  NormalUser normalCurrentUser;
+  User googleCurrentUser;
   @override
   void initState() {
     super.initState();
@@ -133,11 +131,13 @@ class _RegisterPageState extends State<RegisterPage> {
                                     password: password.toString().trim());
                             if (user != null) {
                               Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => CreateNormalUser(
-                                            email: email,
-                                          )));
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CreateNormalUser(
+                                    email: email,
+                                  ),
+                                ),
+                              );
                               noError = true;
                             }
                             setState(() {
@@ -206,13 +206,6 @@ class _RegisterPageState extends State<RegisterPage> {
     if (account != null) {
       googleCreateUserInFireStore();
       print('user signed in ! :$account');
-      setState(() {
-        googleAuth = true;
-      });
-    } else {
-      setState(() {
-        googleAuth = false;
-      });
     }
   }
 
@@ -233,12 +226,12 @@ class _RegisterPageState extends State<RegisterPage> {
       });
       doc = await usersRef.document(user.id).get();
     }
-    googleCurrentUser = GoogleUser.fromDocument(doc);
+    googleCurrentUser = User.fromDocument(doc);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => TestingAuth(
-          username: googleCurrentUser.username,
+        builder: (context) => HomePage(
+          currentUser: googleCurrentUser,
         ),
       ),
     );

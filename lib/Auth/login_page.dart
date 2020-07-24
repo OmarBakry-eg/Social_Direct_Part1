@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
-import 'package:socialdirect_app/testing_auth.dart';
+import 'package:socialdirect_app/models/user.dart';
+import 'package:socialdirect_app/pages/home.dart';
 import 'package:socialdirect_app/Methods/method_auth.dart';
 import 'reg_page.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -15,6 +17,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   var _formKey = GlobalKey<FormState>();
+  final CollectionReference usersRef = Firestore.instance.collection('users');
   final _auth = FirebaseAuth.instance;
   String email;
   var password;
@@ -22,8 +25,9 @@ class _LoginPageState extends State<LoginPage> {
   bool noError = false;
   bool googleAuth = false;
   String errorMessage;
+  User currentUser;
+  Future<QuerySnapshot> userData;
   void initState() {
-    // TODO: implement initState
     super.initState();
     googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
       handelSignInAccount(account);
@@ -40,9 +44,20 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
+  getUserData(String query) {
+    Future<QuerySnapshot> users =
+        usersRef.where("email", isEqualTo: query).getDocuments();
+    setState(() {
+      userData = users;
+    });
+    userData.then((value) => value.documents.forEach((doc) {
+          currentUser = User.fromDocument(doc);
+        }));
+  }
+
   Future googleLogin() async {
     await googleSignIn.signIn();
-    Navigator.pushNamed(context, TestingAuth.routeName);
+    Navigator.pushNamed(context, HomePage.routeName);
   }
 
   @override
@@ -60,6 +75,7 @@ class _LoginPageState extends State<LoginPage> {
                 TextFormField(
                   onChanged: (value) {
                     email = value;
+                    getUserData(value);
                   },
                   validator: (value) {
                     if (value.isEmpty) {
@@ -110,7 +126,7 @@ class _LoginPageState extends State<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     RaisedButton(
-                      child: Text('Register'),
+                      child: Text('Login'),
                       onPressed: () async {
                         if (_formKey.currentState.validate()) {
                           setState(() {
@@ -118,13 +134,16 @@ class _LoginPageState extends State<LoginPage> {
                           });
                           try {
                             final AuthResult user =
-                                await _auth.createUserWithEmailAndPassword(
+                                await _auth.signInWithEmailAndPassword(
                                     email: email.trim(),
                                     password: password.toString().trim());
                             if (user != null) {
-                              Navigator.pushNamed(
+                              Navigator.push(
                                 context,
-                                TestingAuth.routeName,
+                                MaterialPageRoute(
+                                    builder: (context) => HomePage(
+                                          currentUser: currentUser,
+                                        )),
                               );
                               noError = true;
                             }
@@ -151,9 +170,13 @@ class _LoginPageState extends State<LoginPage> {
                               case "ERROR_INVALID_CREDENTIAL":
                                 errorMessage = "Your email is invalid";
                                 break;
+                              case "ERROR_WRONG_PASSWORD":
+                                errorMessage = "Invalid Password";
+                                break;
 
                               default:
-                                errorMessage = "An undefined Error happened.";
+                                errorMessage =
+                                    "An undefined Error happened, check your email and password";
                             }
                           }
                           setState(() {
@@ -193,13 +216,6 @@ class _LoginPageState extends State<LoginPage> {
   handelSignInAccount(GoogleSignInAccount account) {
     if (account != null) {
       print('user signed in ! :$account');
-      setState(() {
-        googleAuth = true;
-      });
-    } else {
-      setState(() {
-        googleAuth = false;
-      });
     }
   }
 }

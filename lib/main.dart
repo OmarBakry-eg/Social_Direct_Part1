@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:socialdirect_app/AuthModel/googleCreateUser.dart';
-import 'package:socialdirect_app/profile.dart';
+import 'package:socialdirect_app/pages/profile.dart';
 import 'Auth/login_page.dart';
-import 'testing_auth.dart';
+import 'pages/home.dart';
 import 'Auth/reg_page.dart';
 
 void main() {
@@ -17,12 +17,12 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       routes: {
         RegisterPage.routeName: (context) => RegisterPage(),
-        TestingAuth.routeName: (c) => TestingAuth(),
+        HomePage.routeName: (c) => HomePage(),
         LoginPage.routeName: (x) => LoginPage(),
         GoogleCreateUser.routeName: (ctx) => GoogleCreateUser(),
         ProfilePage.routeName: (c) => ProfilePage(),
       },
-      initialRoute: ProfilePage.routeName,
+      initialRoute: RegisterPage.routeName,
     );
   }
 }

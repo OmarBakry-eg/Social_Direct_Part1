@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,11 +7,14 @@ import 'package:socialdirect_app/models/user.dart';
 import 'package:socialdirect_app/pages/addpost.dart';
 import 'package:socialdirect_app/pages/chat_screen.dart';
 import 'package:socialdirect_app/pages/profile.dart';
+import 'package:socialdirect_app/pages/search.dart';
 import 'package:socialdirect_app/pages/shopping.dart';
 import 'package:socialdirect_app/pages/timeline.dart';
 import '../Auth/reg_page.dart';
+import 'feed.dart';
 
 FirebaseUser currentLoggedInUser;
+User homeCurrentUser;
 
 class HomePage extends StatefulWidget {
   static const routeName = '/successful_Auth';
@@ -23,6 +27,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final CollectionReference userRef = Firestore.instance.collection('users');
   PageController pageController;
   int pageIndex = 0;
   @override
@@ -30,6 +35,13 @@ class _HomePageState extends State<HomePage> {
     pageController = PageController();
     super.initState();
     getCurrentUser();
+    getCurrentUserTwo();
+  }
+
+  Future<User> getCurrentUserTwo() async {
+    DocumentSnapshot doc = await userRef.document(widget.currentUser.id).get();
+    homeCurrentUser = User.fromDocument(doc);
+    return homeCurrentUser;
   }
 
   getCurrentUser() async {
@@ -88,6 +100,12 @@ class _HomePageState extends State<HomePage> {
             onPressed: handelLogout,
             child: Text('Logout'),
           ),
+          leading: IconButton(
+              icon: Icon(Icons.search),
+              onPressed: () {
+                Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => Search()));
+              }),
         ),
         body: PageView(
           controller: pageController,
@@ -98,8 +116,13 @@ class _HomePageState extends State<HomePage> {
               currentUserId: widget.currentUser.id,
             ),
             Shopping(),
-            AddPost(),
+            AddPost(
+              currentUser: widget.currentUser,
+            ),
             ChatScreen(
+              currentUser: widget.currentUser,
+            ),
+            Feed(
               currentUser: widget.currentUser,
             ),
             ProfilePage(
@@ -128,6 +151,11 @@ class _HomePageState extends State<HomePage> {
             BottomNavigationBarItem(
               icon: Icon(
                 Icons.chat,
+              ),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.notifications_active,
               ),
             ),
             BottomNavigationBarItem(

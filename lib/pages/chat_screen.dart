@@ -58,9 +58,10 @@ class _ChatScreenState extends State<ChatScreen> {
           }
 
           return ChatColumn(
-              messageTextController: messageTextController,
-              sendMessage: sendMessage,
-              messageBubbles: messageBubbles);
+            messageTextController: messageTextController,
+            sendMessage: sendMessage,
+            messageBubbles: messageBubbles,
+          );
         },
         stream: Firestore.instance
             .collection('chat')

@@ -174,6 +174,9 @@ class _LoginPageState extends State<LoginPage> {
                                 errorMessage = "Invalid Password";
                                 break;
 
+                              case "ERROR_USER_NOT_FOUND":
+                                errorMessage = "Your email is invalid";
+                                break;
                               default:
                                 errorMessage =
                                     "An undefined Error happened, check your email and password";

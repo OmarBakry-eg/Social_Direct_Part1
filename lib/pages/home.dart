@@ -113,7 +113,7 @@ class _HomePageState extends State<HomePage> {
           physics: NeverScrollableScrollPhysics(),
           children: <Widget>[
             Timeline(
-              currentUserId: widget.currentUser.id,
+              currentUser: widget.currentUser,
             ),
             Shopping(),
             AddPost(

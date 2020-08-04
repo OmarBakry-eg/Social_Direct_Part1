@@ -202,9 +202,9 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  handelSignInAccount(GoogleSignInAccount account) {
+  handelSignInAccount(GoogleSignInAccount account) async {
     if (account != null) {
-      googleCreateUserInFireStore();
+      await googleCreateUserInFireStore();
       print('user signed in ! :$account');
     }
   }
